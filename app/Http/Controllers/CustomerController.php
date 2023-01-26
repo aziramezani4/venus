@@ -1,13 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Admin\Account;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Account\StoreAccountRequest;
-use App\Http\Requests\Admin\Account\UpdateAccountRequest;
-use App\Models\Account;
+use App\Models\Customer;
+use App\Http\Requests\StoreCustomerRequest;
+use App\Http\Requests\UpdateCustomerRequest;
 
-class AccountController extends Controller
+class CustomerController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -32,10 +31,10 @@ class AccountController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \App\Http\Requests\Admin\Account\StoreAccountRequest  $request
+     * @param  \App\Http\Requests\StoreCustomerRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreAccountRequest $request)
+    public function store(StoreCustomerRequest $request)
     {
         //
     }
@@ -43,10 +42,10 @@ class AccountController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Account  $account
+     * @param  \App\Models\Customer  $customer
      * @return \Illuminate\Http\Response
      */
-    public function show(Account $account)
+    public function show(Customer $customer)
     {
         //
     }
@@ -54,10 +53,10 @@ class AccountController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Account  $account
+     * @param  \App\Models\Customer  $customer
      * @return \Illuminate\Http\Response
      */
-    public function edit(Account $account)
+    public function edit(Customer $customer)
     {
         //
     }
@@ -65,11 +64,11 @@ class AccountController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \App\Http\Requests\Admin\Account\UpdateAccountRequest  $request
-     * @param  \App\Models\Account  $account
+     * @param  \App\Http\Requests\UpdateCustomerRequest  $request
+     * @param  \App\Models\Customer  $customer
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateAccountRequest $request, Account $account)
+    public function update(UpdateCustomerRequest $request, Customer $customer)
     {
         //
     }
@@ -77,10 +76,10 @@ class AccountController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Account  $account
+     * @param  \App\Models\Customer  $customer
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Account $account)
+    public function destroy(Customer $customer)
     {
         //
     }

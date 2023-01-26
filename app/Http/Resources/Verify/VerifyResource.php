@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources\Verify;
 
-use App\Http\Resources\Account\AccountResource;
+use App\Http\Resources\Customer\CustomerResource;
 use App\Models\Account;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -13,7 +13,7 @@ class VerifyResource extends JsonResource
         return [
             'id' => $this->id,
             'phone' => $this->phone,
-//            'account' => new AccountResource(Account::find($this->account_id)),
+//            'account' => new CustomerResource(Account::find($this->account_id)),
         ];
     }
 

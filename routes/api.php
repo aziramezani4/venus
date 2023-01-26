@@ -15,10 +15,12 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::post('register/{verify}', [AuthController::class, 'register'])->name('register');
-Route::post('login', [AuthController::class, 'login'])->name('login');
-Route::post('check/otp/{verify}', [AuthController::class, 'check_otp'])->name('check_otp');
-Route::post('check/password/{account}', [AuthController::class, 'check_password'])->name('check_password');
+Route::post('customer/signup', [AuthController::class, 'signup'])->name('signup');
+Route::post('customer/reset/password', [AuthController::class, 'reset_password'])->name('reset_password');
+Route::post('customer/signup/check/otp', [AuthController::class, 'check_otp'])->name('check_otp');
+Route::post('customer/check/password', [AuthController::class, 'check_password'])->name('check_password');
+Route::post('customer/new/password/{verify}', [AuthController::class, 'new_password'])->name('new_password');
+Route::post('customer/register/{verify}', [AuthController::class, 'register'])->name('register');
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();

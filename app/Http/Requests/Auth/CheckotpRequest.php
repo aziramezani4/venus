@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Admin\Account;
+namespace App\Http\Requests\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateAccountRequest extends FormRequest
+class CheckotpRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -13,7 +13,7 @@ class UpdateAccountRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -24,7 +24,7 @@ class UpdateAccountRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+            'phone_number' => ['nullable', 'digits:11', 'unique:customers,phone_number'],
         ];
     }
 }

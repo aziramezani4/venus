@@ -24,11 +24,11 @@ class RegisterRequest extends FormRequest
     public function rules()
     {
         return [
-            'username' => ['required', 'string', 'max:255'],
-            'type' => ['nullable', 'numeric', 'max:10'],
-            'phone' => ['nullable', 'digits:11', 'unique:accounts,phone'],
-            'national_code' => ['required', 'digits:10', 'unique:accounts,national_code'],
-            'password' => ['nullable', 'string', 'min:8','max:16'],
+            'user_name' => ['required', 'string', 'max:255', 'unique:customers,user_name'],
+            'first_name' => ['required', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'phone_number' => ['nullable', 'digits:11', 'unique:customers,phone_number'],
+            'password' => ['required', 'string', 'min:8','max:16'],
         ];
     }
 }

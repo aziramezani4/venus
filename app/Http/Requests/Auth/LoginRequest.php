@@ -24,7 +24,18 @@ class LoginRequest extends FormRequest
     public function rules()
     {
         return [
-            'phone' => ['required', 'digits:11'],
+            'phone' => 'required|regex:/(09)[0-9]{9}/|digits:11|numeric',
+            'phone.digits' => 'The :phone digits must be 11 digits',
+            'phone.regex' => 'The :phone regex must like 09171011144',
+            'phone.numeric' => 'The :phone number must be numeric',
+        ];
+    }
+    public function messages()
+    {
+        return [
+            'phone.digits' => 'The :phone digits must be 11 digits',
+            'phone.regex' => 'The :phone regex must like 09171011144',
+            'phone.numeric' => 'The :phone number must be numeric',
         ];
     }
 }

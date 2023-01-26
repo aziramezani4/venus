@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->string('otp_code')->nullable();
             $table->bigInteger('phone');
-            $table->foreignId('account_id')->nullable()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('customer_id')->nullable()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->softDeletes();
             $table->timestamps();
         });
