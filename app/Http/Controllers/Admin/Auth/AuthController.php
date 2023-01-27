@@ -12,8 +12,13 @@ use App\Models\Account;
 use App\Models\Customer;
 use App\Models\Verify;
 use DateTime;
+use http\Env\Response;
+use Illuminate\Support\Facades\DB;
+use Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Pamenary\LaravelSms\Laravel\Facade\Sms;
 use Validator;
 use Melipayamak;
 use Exception;
@@ -24,7 +29,7 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class AuthController extends Controller
 {
-    public function signup(LoginRequest $request): JsonResponse|AnonymousResourceCollection
+    public function signup(LoginRequest $request)
     {
 
         try {
@@ -35,25 +40,27 @@ class AuthController extends Controller
                 ]);
 //                $new_verify->sendOtp();
 
-//                try{
-//                    $sms = Melipayamak::sms();
+//                try {
 //                    $code = rand(100000, 999999);
-//                    $to = $request->phone;
-//                    $from = '5000...';
-//                    $response = $sms->send($to,$from,$code);
-//                    $json = json_decode($response);
-//                    echo $json->Value; //RecId or Error Number
-//                }catch(Exception $e){
+////                    $this->update(['otp_code' => $code]);
+//                    Sms::sendSMS(['09171022166'], $code);
+//                } catch (Exception $e) {
+//                    Log::error($e->getMessage());
 //                    echo $e->getMessage();
 //                }
-                $code = rand(100000, 999999);
-                $new_verify->update([
-                    'otp_code' => $code,
-                ]);
-                return response()->json([
-                    'data' => $new_verify->phone,
-                    'message' => 'otp_code send successfully',
-                ], 200);
+////                $code = rand(100000, 999999);
+////                $new_verify->update([
+////                    'otp_code' => $code,
+////                ]);
+///
+                $data = $new_verify->phone;
+                $status = 200;
+                $message = 'otp_code send successfully';
+                $isSuccess =true;
+                $errors = [];
+
+                return response_json($data,$status,$message,$isSuccess,$errors);
+
             } else {
                 $user = Customer::where('phone_number', $request->phone)->first();
                 $verify->update([
@@ -63,24 +70,38 @@ class AuthController extends Controller
                 $user->update([
                     'last_login' => $date,
                 ]);
-                return response()->json([
-                    'data' => $verify,
-                    'message' => 'login successfully',
-                ], 200);
+                $data = $verify;
+                $status = 200;
+                $message = 'login successfully';
+                $isSuccess =true;
+                $errors = [];
+
+                return response_json($data,$status,$message,$isSuccess,$errors);
+
             }
         } catch (Exception $e) {
 
-                $response = [
-                    'status' => 200,
-                    'message' => 'shrg',
-                    'isSuccess' => false,
+            $data = [];
+            $status = 200;
+            $message = 'Internal Service Error';
+            $isSuccess =false;
+            $errors = [
+                'message' => $e->getMessage(),
+            ];
+
+            return response_json($data,$status,$message,$isSuccess,$errors);
+
+//                $response = [
+//                    'status' => 200,
+//                    'message' => 'Internal Service Error',
+//                    'isSuccess' => false,
 //                    'errors' => [
-////                        'message' => $e->getMessage(),
+//                        'message' => $e->getMessage(),
 //                    ],
-                ];
-                return response()->json($response, 200);
-            }
+//                ];
+//                return response()->json($response, 200);
         }
+    }
 
 
     public function check_otp(CheckotpRequest $request): JsonResponse
@@ -97,28 +118,28 @@ class AuthController extends Controller
                 'customer_id'=>$customer->id,
             ]);
             $profile_status=$customer->profile_status;
-            $response = [
-                'data'=>[
+
+            $data = [
                 'customer_id' => $customer->id,
                 'phone' => $customer->phone_number,
                 'profile_status' => $profile_status ? true : false,
                 'token' => $customer->createToken('auth-token', ['*'], now()->addDay())->plainTextToken,
-                    ],
-                'status' => 200,
-                'message' => 'check otp Verified successfully',
-                'isSuccess' => true,
-                'errors' => null,
             ];
+            $status = 200;
+            $message = 'check otp Verified successfully';
+            $isSuccess =true;
+            $errors = null;
 
-            return response()->json($response, 200);
+            return response_json($data,$status,$message,$isSuccess,$errors);
+
         } else {
-            return response()->json([
-                'data' => [],
-                'status' => 200,
-                'message' => 'OTP is not valid',
-                'isSuccess' => false,
-                'errors' => ['message' => 'OTP is not valid',]
-            ], 200);
+            $data = [];
+            $status = 200;
+            $message = 'OTP is not valid';
+            $isSuccess =false;
+            $errors = ['message' => 'OTP is not valid'];
+
+            return response_json($data,$status,$message,$isSuccess,$errors);
 
         }
     }
@@ -127,6 +148,7 @@ class AuthController extends Controller
         $customer = Customer::where('phone_number',$request->phone_number)->first();
 
         if (Hash::check($request->password,$customer->password)) {
+
 
             $response = [
                 'data' => $customer,
@@ -139,6 +161,7 @@ class AuthController extends Controller
 
             return response()->json($response, 200);
         } else {
+
             return response()->json([
                 'data' => [],
                 'status' => 200,
@@ -152,29 +175,43 @@ class AuthController extends Controller
     public function register(Verify $verify,RegisterRequest $request): JsonResponse|CustomerResource
     {
         try {
-            $customer = Customer::create([
-                'phone_number' => $verify->phone,
-                'user_name' => $request->user_name,
-                'first_name' => $request->first_name,
-                'last_name' => $request->last_name,
-                'password' => Hash::make($request->password),
-               ]);
-            $verify->update([
-               'customer_id'=>$customer->id,
-            ]);
-            return new CustomerResource($customer);
-        } catch (Exception $e) {
-            $response = [
-                'status' => 200,
-                'message' => 'Internal server error',
-                'isSuccess' => false,
-                'errors' => [
-                    'message' => $e->getMessage(),
-                ],
-            ];
-            return response()->json($response, 201);
-        }
+            $exist_customer = DB::table('customers')->where('phone_number', $verify->phone)->first();
+            if(!$exist_customer) {
+                $customer = Customer::create([
+                    'phone_number' => $verify->phone,
+                    'user_name' => $request->user_name,
+                    'first_name' => $request->first_name,
+                    'last_name' => $request->last_name,
+                    'password' => Hash::make($request->password),
+                ]);
 
+                DB::table('verifies')->where('id', $verify->id)->update(['customer_id' => $customer->id]);
+
+                $data = new CustomerResource($customer);
+                $status = 200;
+                $message = 'Customer create successfully';
+                $isSuccess = true;
+                $errors = null;
+
+                return response_json($data, $status, $message, $isSuccess, $errors);
+            }else{
+                $data = [];
+                $status = 200;
+                $message = 'Customer exists';
+                $isSuccess = true;
+                $errors = null;
+
+                return response_json($data, $status, $message, $isSuccess, $errors);
+            }
+        } catch (Exception $e) {
+            $data = [];
+            $status = 200;
+            $message = 'Internal server error';
+            $isSuccess =false;
+            $errors = ['message' => $e->getMessage()];
+
+            return response_json($data,$status,$message,$isSuccess,$errors);
+        }
     }
     public function reset_password(LoginRequest $request): JsonResponse|AnonymousResourceCollection
     {
@@ -224,18 +261,18 @@ class AuthController extends Controller
     {
         $customer = Customer::where('phone_number',$verify->phone)->first();
         try {
-        if($request->password == $request->re_password) {
-           $customer->update([
-            'password' => Hash::make($request->password),
-           ]);
-         return new CustomerResource($customer);
-           }else{
-         return response()->json([
-           'status' => 200,
-           'message' => 'Password Incorrect',
-           'isSuccess' => false,
-       ]);
-}
+            if($request->password == $request->re_password) {
+                $customer->update([
+                    'password' => Hash::make($request->password),
+                ]);
+                return new CustomerResource($customer);
+            }else{
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Password Incorrect',
+                    'isSuccess' => false,
+                ]);
+            }
         } catch (Exception $e) {
             $response = [
                 'status' => 200,
