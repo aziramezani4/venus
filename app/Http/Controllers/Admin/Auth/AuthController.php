@@ -35,6 +35,7 @@ class AuthController extends Controller
                 $new_verify = Verify::create([
                     'phone' => $request->phone
                 ]);
+                
 
 //                $otp_code = rand(100000, 999999);
 //                $to = $request->phone;
