@@ -24,7 +24,7 @@ class CheckotpRequest extends FormRequest
     public function rules()
     {
         return [
-            'phone_number' => ['nullable', 'digits:11', 'unique:customers,phone_number'],
+            'phone_number' => ['nullable', 'digits:11'],
         ];
     }
 }
