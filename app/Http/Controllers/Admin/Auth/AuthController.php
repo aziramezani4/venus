@@ -16,9 +16,11 @@ use http\Env\Response;
 use Illuminate\Support\Facades\DB;
 use Notification;
 use Illuminate\Support\Facades\Hash;
+use OpenApi\Annotations as OA;
 use Pamenary\LaravelSms\Laravel\Facade\Sms;
 use Validator;
 use Exception;
+
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -26,6 +28,33 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class AuthController extends Controller
 {
+    /**
+     * @OA\Info(title="My First API", version="0.1")
+     */
+    /**
+     * @OA\Post(
+     * path="/api/customer/signup",
+     * summary="Sign in",
+     * description="Login by phone",
+     * operationId="authLogin",
+     * tags={"auth"},
+     * @OA\RequestBody(
+     *    required=true,
+     *    description="phone user credentials",
+     *    @OA\JsonContent(
+     *       required={"phone"},
+     *       @OA\Property(property="phone", type="string", format="number", example="09172549365"),
+     *    ),
+     * ),
+     * @OA\Response(
+     *    response=200,
+     *    description="Wrong credentials response",
+     *    @OA\JsonContent(
+     *       @OA\Property(property="message", type="string", example="Sorry, wrong email address or password. Please try again")
+     *        )
+     *     )
+     * )
+     */
     public function signup(LoginRequest $request)
     {
 
@@ -115,7 +144,30 @@ class AuthController extends Controller
         }
     }
 
-
+    /**
+     * @OA\Post(
+     * path="/api/customer/signup/check/otp",
+     * summary="Check OTP",
+     * description="Check by phone and otp_code",
+     * tags={"auth"},
+     * @OA\RequestBody(
+     *    required=true,
+     *    description="phone user credentials",
+     *    @OA\JsonContent(
+     *       required={"phone_number","otp_code"},
+     *       @OA\Property(property="phone_number", type="string", format="number", example="09172549365"),
+     *       @OA\Property(property="otp_code", type="string", format="number", example="1254365"),
+     *    ),
+     * ),
+     * @OA\Response(
+     *    response=200,
+     *    description="Wrong credentials response",
+     *    @OA\JsonContent(
+     *       @OA\Property(property="message", type="string", example="Sorry, wrong email address or password. Please try again")
+     *        )
+     *     )
+     * )
+     */
     public function check_otp(CheckotpRequest $request): JsonResponse
     {
         $verify = Verify::where('phone',$request->phone_number)->first();
@@ -155,6 +207,30 @@ class AuthController extends Controller
 
         }
     }
+    /**
+     * @OA\Post(
+     * path="/api/customer/check/password",
+     * summary="Check password",
+     * description="Check by phone and password",
+     * tags={"auth"},
+     * @OA\RequestBody(
+     *    required=true,
+     *    description="phone user credentials",
+     *    @OA\JsonContent(
+     *       required={"phone_number","otp_code"},
+     *       @OA\Property(property="phone_number", type="string", format="number", example="09172549365"),
+     *       @OA\Property(property="password", type="string", format="number", example="1254365"),
+     *    ),
+     * ),
+     * @OA\Response(
+     *    response=200,
+     *    description="Wrong credentials response",
+     *    @OA\JsonContent(
+     *       @OA\Property(property="message", type="string", example="Sorry, wrong email address or password. Please try again")
+     *        )
+     *     )
+     * )
+     */
     public function check_password(Request $request): JsonResponse
     {
         $customer = Customer::where('phone_number',$request->phone_number)->first();
@@ -183,6 +259,48 @@ class AuthController extends Controller
 
         }
     }
+
+    /**
+     * @OA\Post(
+     * path="/api/customer/register/{verify}",
+     * summary="Sign up",
+     * description="Register by phone",
+     * operationId="authRegister",
+     * tags={"auth"},
+     * security={ {"bearer": {} }},
+     * @OA\Parameter(
+     *    description="ID of verify",
+     *    in="path",
+     *    name="verify",
+     *    required=true,
+     *    example="1",
+     *    @OA\Schema(
+     *       type="integer",
+     *       format="int64"
+     *    )
+     * ),
+     * @OA\RequestBody(
+     *    required=true,
+     *    description="information user credentials",
+     *    @OA\JsonContent(
+     *       required={"firstname","user_name","address","phone","national_code","gender","birthday"},
+     *       @OA\Property(property="first_name", type="string", format="string", example="john"),
+     *       @OA\Property(property="last_name", type="string", format="string", example="doe"),
+     *       @OA\Property(property="phone_number", type="number", format="number", example="09362561425"),
+     *       @OA\Property(property="password", type="string", format="number", example="test"),
+     *
+     *    ),
+     * ),
+     * @OA\Response(
+     *    response=200,
+     *    description="Wrong credentials response",
+     *    @OA\JsonContent(
+     *       @OA\Property(property="message", type="string", example="Sorry, wrong information. Please try again")
+     *        )
+     *     )
+     * )
+     */
+
     public function register(Verify $verify,RegisterRequest $request): JsonResponse|CustomerResource
     {
         try {
@@ -224,6 +342,44 @@ class AuthController extends Controller
             return response_json($data,$status,$message,$isSuccess,$errors);
         }
     }
+    /**
+     * @OA\Post(
+     * path="/api/customer/new/password/{verify}",
+     * summary="Reset password",
+     * description="Resset by password",
+     * operationId="authRegister",
+     * tags={"auth"},
+     * security={ {"bearer": {} }},
+     * @OA\Parameter(
+     *    description="ID of verify",
+     *    in="path",
+     *    name="verify",
+     *    required=true,
+     *    example="1",
+     *    @OA\Schema(
+     *       type="integer",
+     *       format="int64"
+     *    )
+     * ),
+     * @OA\RequestBody(
+     *    required=true,
+     *    description="information user credentials",
+     *    @OA\JsonContent(
+     *       required={"password","re_password"},
+     *       @OA\Property(property="password", type="string", format="string", example="john"),
+     *       @OA\Property(property="re_password", type="string", format="string", example="john"),
+     *
+     *    ),
+     * ),
+     * @OA\Response(
+     *    response=200,
+     *    description="Wrong credentials response",
+     *    @OA\JsonContent(
+     *       @OA\Property(property="message", type="string", example="Sorry, wrong information. Please try again")
+     *        )
+     *     )
+     * )
+     */
 
     public function new_password(Verify $verify,Request $request): JsonResponse|CustomerResource
     {
