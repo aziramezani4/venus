@@ -16,7 +16,6 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::post('customer/signup', [AuthController::class, 'signup'])->name('signup');
-Route::post('customer/reset/password', [AuthController::class, 'reset_password'])->name('reset_password');
 Route::post('customer/signup/check/otp', [AuthController::class, 'check_otp'])->name('check_otp');
 Route::post('customer/check/password', [AuthController::class, 'check_password'])->name('check_password');
 Route::post('customer/new/password/{verify}', [AuthController::class, 'new_password'])->name('new_password');

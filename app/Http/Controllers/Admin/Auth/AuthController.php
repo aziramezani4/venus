@@ -15,12 +15,9 @@ use DateTime;
 use http\Env\Response;
 use Illuminate\Support\Facades\DB;
 use Notification;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Pamenary\LaravelSms\Laravel\Facade\Sms;
 use Validator;
-use Melipayamak;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -38,17 +35,40 @@ class AuthController extends Controller
                 $new_verify = Verify::create([
                     'phone' => $request->phone
                 ]);
-//
-//                $new_verify->sendOtp();
 
-//                try {
-//                    $code = rand(100000, 999999);
-////                    $this->update(['otp_code' => $code]);
-//                    Sms::sendSMS(['09171022166'], $code);
-//                } catch (Exception $e) {
-//                    Log::error($e->getMessage());
-//                    echo $e->getMessage();
-//                }
+
+
+//                $otp_code = rand(100000, 999999);
+//                $to = $request->phone;
+
+//                $code = rand(100000, 999999);
+//                $to = $request->phone;
+//                $new_verify->send_sms($to,$code);
+//                $code = rand(100000, 999999);
+//                $url = 'https://console.melipayamak.com/api/send/simple/35ea3684ce1b446ebc29cf956a332197';
+//                $data = array('from' => '50004001445999', 'to' => '09171022166', 'text' =>'test');
+//                $data_string = json_encode($data);
+//                $ch = curl_init($url);
+//                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+//                curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
+//
+//// Next line makes the request absolute insecure
+//                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+//// Use it when you have trouble installing local issuer certificate
+//// See https://stackoverflow.com/a/31830614/1743997
+//
+//                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+//                curl_setopt($ch, CURLOPT_HTTPHEADER,
+//                    array('Content-Type: application/json',
+//                        'Content-Length: ' . strlen($data_string))
+//                );
+//                $result = curl_exec($ch);
+//                curl_close($ch);
+// to debug
+// if(curl_errno($ch)){
+//     echo 'Curl error: ' . curl_error($ch);
+// }
+
 ////                $code = rand(100000, 999999);
 ////                $new_verify->update([
 ////                    'otp_code' => $code,
@@ -92,15 +112,6 @@ class AuthController extends Controller
 
             return response_json($data,$status,$message,$isSuccess,$errors);
 
-//                $response = [
-//                    'status' => 200,
-//                    'message' => 'Internal Service Error',
-//                    'isSuccess' => false,
-//                    'errors' => [
-//                        'message' => $e->getMessage(),
-//                    ],
-//                ];
-//                return response()->json($response, 200);
         }
     }
 
@@ -150,26 +161,25 @@ class AuthController extends Controller
 
         if (Hash::check($request->password,$customer->password)) {
 
-
-            $response = [
-                'data' => $customer,
+            $data = [
+                'customer'=>$customer,
                 'token' => $customer->createToken('auth-token', ['*'], now()->addDay())->plainTextToken,
-                'status' => 200,
-                'message' => 'Account Verified successfully',
-                'isSuccess' => true,
-                'errors' => null,
             ];
+            $status = 200;
+            $message = 'Account Verified successfully';
+            $isSuccess =true;
+            $errors = null;
 
-            return response()->json($response, 200);
+            return response_json($data,$status,$message,$isSuccess,$errors);
+
         } else {
+            $data = [];
+            $status = 200;
+            $message = 'Password is not valid';
+            $isSuccess =false;
+            $errors = ['message' => 'Password is not valid'];
 
-            return response()->json([
-                'data' => [],
-                'status' => 200,
-                'message' => 'Password is not valid',
-                'isSuccess' => false,
-                'errors' => ['message' => 'Password is not valid',]
-            ], 200);
+            return response_json($data,$status,$message,$isSuccess,$errors);
 
         }
     }
@@ -214,77 +224,51 @@ class AuthController extends Controller
             return response_json($data,$status,$message,$isSuccess,$errors);
         }
     }
-    public function reset_password(LoginRequest $request): JsonResponse|AnonymousResourceCollection
-    {
-        try {
-            $verify=Verify::where('phone',$request->phone)->first();
-            if(!$verify) {
 
-                return response()->json([
-                    'data' => [],
-                    'message' => 'Customer can not found',
-                ], 200);
-
-            }else {
-//                try{
-//                    $sms = Melipayamak::sms();
-//                    $code = rand(100000, 999999);
-//                    $to = $request->phone;
-//                    $from = '5000...';
-//                    $response = $sms->send($to,$from,$code);
-//                    $json = json_decode($response);
-//                    echo $json->Value; //RecId or Error Number
-//                }catch(Exception $e){
-//                    echo $e->getMessage();
-//                }
-                $code = rand(100000, 999999);
-                $verify->update([
-                    'otp_code' => $code,
-                ]);
-                return response()->json([
-                    'data' => $verify,
-                    'message' => 'otp_code send successfully',
-                ], 200);
-            }
-        } catch (Exception $e) {
-            $response = [
-                'status' => 200,
-                'message' => 'Internal server error',
-                'isSuccess' => false,
-                'errors' => [
-                    'message' => $e->getMessage(),
-                ],
-            ];
-            return response()->json($response, 200);
-        }
-    }
     public function new_password(Verify $verify,Request $request): JsonResponse|CustomerResource
     {
         $customer = Customer::where('phone_number',$verify->phone)->first();
         try {
-            if($request->password == $request->re_password) {
-                $customer->update([
-                    'password' => Hash::make($request->password),
-                ]);
-                return new CustomerResource($customer);
+            if($customer) {
+                if ($request->password == $request->re_password) {
+                    $customer->update([
+                        'password' => Hash::make($request->password),
+                    ]);
+
+                    $data = new CustomerResource($customer);
+                    $status = 200;
+                    $message = 'Password change successfully';
+                    $isSuccess = true;
+                    $errors = null;
+
+                    return response_json($data, $status, $message, $isSuccess, $errors);
+                } else {
+                    $data = [];
+                    $status = 200;
+                    $message = 'Password Incorrect';
+                    $isSuccess = false;
+                    $errors = null;
+
+                    return response_json($data, $status, $message, $isSuccess, $errors);
+                }
             }else{
-                return response()->json([
-                    'status' => 200,
-                    'message' => 'Password Incorrect',
-                    'isSuccess' => false,
-                ]);
+                $data = [];
+                $status = 200;
+                $message = 'Customer does not exist';
+                $isSuccess = false;
+                $errors = null;
+
+                return response_json($data, $status, $message, $isSuccess, $errors);
+
             }
         } catch (Exception $e) {
-            $response = [
-                'status' => 200,
-                'message' => 'Internal server error',
-                'isSuccess' => false,
-                'errors' => [
-                    'message' => $e->getMessage(),
-                ],
-            ];
-            return response()->json($response, 201);
-        }
+            $data = [];
+            $status = 200;
+            $message = 'Internal server error';
+            $isSuccess = false;
+            $errors = $e;
 
+            return response_json($data, $status, $message, $isSuccess, $errors);
+        }
     }
 }
