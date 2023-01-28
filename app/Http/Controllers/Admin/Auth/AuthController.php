@@ -38,6 +38,7 @@ class AuthController extends Controller
                 $new_verify = Verify::create([
                     'phone' => $request->phone
                 ]);
+//
 //                $new_verify->sendOtp();
 
 //                try {
