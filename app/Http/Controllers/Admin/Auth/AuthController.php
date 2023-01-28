@@ -66,43 +66,40 @@ class AuthController extends Controller
                 ]);
 
 
+                $otp_code = rand(100000, 999999);
+                $to = $request->phone;
 
-//                $otp_code = rand(100000, 999999);
-//                $to = $request->phone;
+                $url = 'https://console.melipayamak.com/api/send/shared/35ea3684ce1b446ebc29cf956a332197';
+                $data = array('bodyId' => 120805, 'to' => $to, 'args' => ["$otp_code"]);
+                $data_string = json_encode($data);
+                $ch = curl_init($url);
+                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
 
-//                $code = rand(100000, 999999);
-//                $to = $request->phone;
-//                $new_verify->send_sms($to,$code);
-//                $code = rand(100000, 999999);
-//                $url = 'https://console.melipayamak.com/api/send/simple/35ea3684ce1b446ebc29cf956a332197';
-//                $data = array('from' => '50004001445999', 'to' => '09171022166', 'text' =>'test');
-//                $data_string = json_encode($data);
-//                $ch = curl_init($url);
-//                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-//                curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
-//
-//// Next line makes the request absolute insecure
-//                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-//// Use it when you have trouble installing local issuer certificate
-//// See https://stackoverflow.com/a/31830614/1743997
-//
-//                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-//                curl_setopt($ch, CURLOPT_HTTPHEADER,
-//                    array('Content-Type: application/json',
-//                        'Content-Length: ' . strlen($data_string))
-//                );
-//                $result = curl_exec($ch);
-//                curl_close($ch);
+                // Next line makes the request absolute insecure
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+// Use it when you have trouble installing local issuer certificate
+// See https://stackoverflow.com/a/31830614/1743997
+
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER,
+                    array('Content-Type: application/json',
+                        'Content-Length: ' . strlen($data_string))
+                );
+                $result = curl_exec($ch);
+                curl_close($ch);
 // to debug
 // if(curl_errno($ch)){
 //     echo 'Curl error: ' . curl_error($ch);
 // }
 
-////                $code = rand(100000, 999999);
-////                $new_verify->update([
-////                    'otp_code' => $code,
-////                ]);
-///
+
+
+
+                $new_verify->update([
+                    'otp_code' => Hash::make($otp_code),
+                ]);
+
                 $data = $new_verify->phone;
                 $status = 200;
                 $message = 'otp_code send successfully';
@@ -172,7 +169,8 @@ class AuthController extends Controller
     {
         $verify = Verify::where('phone',$request->phone_number)->first();
 
-        if ($verify->otp_code == $request->otp_code) {
+
+            if (Hash::check($request->otp_code,$verify->otp_code )){
 
             $customer = Customer::create([
                 'phone_number' => $request->phone_number,
