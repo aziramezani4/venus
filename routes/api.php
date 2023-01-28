@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-
+Route::redirect('/documentation', '/request-docs');
 Route::post('customer/signup', [AuthController::class, 'signup'])->name('signup');
 Route::post('customer/signup/check/otp', [AuthController::class, 'check_otp'])->name('check_otp');
 Route::post('customer/check/password', [AuthController::class, 'check_password'])->name('check_password');
